@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Campeonato Tachuelas 2026</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f4f6f8; }
+    header { background: #1b5e20; color: white; padding: 1rem; }
+    nav a { color: white; margin-right: 1rem; text-decoration: none; font-weight: bold; }
+    main { padding: 1.5rem; }
+    h1, h2 { color: #1b5e20; }
+    table { border-collapse: collapse; width: 100%; margin-top: 1rem; background: white; }
+    th, td { border: 1px solid #ddd; padding: 0.6rem; text-align: center; }
+    th { background: #e8f5e9; }
+    tr:nth-child(even) { background: #f9f9f9; }
+    select { padding: 0.4rem; font-size: 1rem; }
+    footer { text-align: center; padding: 1rem; font-size: 0.9rem; color: #666; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🏌️ Campeonato Tachuelas 2026</h1>
+  <nav>
+    <a href="#ranking">Ranking</a>
+    <a href="#resultados">Resultados</a>
+    <a href="#jugadores">Jugadores</a>
+  </nav>
+</header>
+
+<main>
+
+<section id="ranking">
+  <h2>🏆 Ranking Anual</h2>
+  <table id="rankingTable">
+    <thead>
+      <tr>
+        <th>Posición</th>
+        <th>Jugador</th>
+        <th>Top 8 Stableford</th>
+        <th>Promedio</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<section id="resultados">
+  <h2>📅 Resultados por Fecha</h2>
+  <label>Fecha:
+    <select id="fechaSelect"></select>
+  </label>
+  <table id="resultadosTable">
+    <thead>
+      <tr>
+        <th>Jugador</th>
+        <th>Gross</th>
+        <th>Stableford</th>
+        <th>2da Vuelta</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<section id="jugadores">
+  <h2>👤 Jugadores</h2>
+  <ul id="jugadoresList"></ul>
+</section>
+
+</main>
+
+<footer>
+  Campeonato Tachuelas · Stableford semanal · 2026
+</footer>
+
+<script>
+// 🔧 CONFIGURACIÓN
+// Reemplazar estas URLs por las de Google Sheets publicadas como CSV
+const URL_RANKING = 'RANKING.csv';
+const URL_FECHAS = 'FECHAS.csv';
+const URL_RESULTADOS = 'RESULTADOS.csv';
+const URL_JUGADORES = 'JUGADORES.csv';
+
+// 🏆 Ranking
+fetch(URL_RANKING)
+  .then(r => r.text())
+  .then(text => {
+    const rows = text.split('\n').slice(1);
+    const tbody = document.querySelector('#rankingTable tbody');
+    rows.forEach((row, i) => {
+      if (!row) return;
+      const cols = row.split(',');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${i+1}</td><td>${cols[1]}</td><td>${cols[2]}</td><td>${cols[3]}</td>`;
+      tbody.appendChild(tr);
+    });
+  });
+
+// 📅 Fechas
+let fechas = {};
+fetch(URL_FECHAS)
+  .then(r => r.text())
+  .then(text => {
+    const rows = text.split('\n').slice(1);
+    const select = document.getElementById('fechaSelect');
+    rows.forEach(row => {
+      if (!row) return;
+      const cols = row.split(',');
+      fechas[cols[0]] = cols[1];
+      const opt = document.createElement('option');
+      opt.value = cols[0];
+      opt.textContent = cols[1];
+      select.appendChild(opt);
+    });
+    select.onchange = () => cargarResultados(select.value);
+    select.dispatchEvent(new Event('change'));
+  });
+
+// ⛳ Resultados
+let resultados = [];
+fetch(URL_RESULTADOS)
+  .then(r => r.text())
+  .then(text => {
+    const rows = text.split('\n').slice(1);
+    resultados = rows.map(r => r.split(','));
+  });
+
+function cargarResultados(idFecha) {
+  const tbody = document.querySelector('#resultadosTable tbody');
+  tbody.innerHTML = '';
+  resultados
+    .filter(r => r[0] === idFecha)
+    .forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td>`;
+      tbody.appendChild(tr);
+    });
+}
+
+// 👤 Jugadores
+fetch(URL_JUGADORES)
+  .then(r => r.text())
+  .then(text => {
+    const rows = text.split('\n').slice(1);
+    const ul = document.getElementById('jugadoresList');
+    rows.forEach(row => {
+      if (!row) return;
+      const cols = row.split(',');
+      const li = document.createElement('li');
+      li.textContent = `${cols[1]} ${cols[2]} (${cols[3]})`;
+      ul.appendChild(li);
+    });
+  });
+</script>
+
+</body>
+</html>
