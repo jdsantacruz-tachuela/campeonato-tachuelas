@@ -79,54 +79,117 @@
 </footer>
 
 <script>
-const URL_RANKING = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEhE_31yHY8OwMizzlRlrqB5fQYw-j3qAttkBV9kMoDs8mKxmmBzeOX2BpDzGJlUFWEA1nPJzIL6O6/pub?gid=1718917973&single=true&output=csv';
-const URL_FECHAS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEhE_31yHY8OwMizzlRlrqB5fQYw-j3qAttkBV9kMoDs8mKxmmBzeOX2BpDzGJlUFWEA1nPJzIL6O6/pub?gid=186519659&single=true&output=csv';
-const URL_RESULTADOS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEhE_31yHY8OwMizzlRlrqB5fQYw-j3qAttkBV9kMoDs8mKxmmBzeOX2BpDzGJlUFWEA1nPJzIL6O6/pub?gid=2135669188&single=true&output=csv';
-const URL_JUGADORES = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEhE_31yHY8OwMizzlRlrqB5fQYw-j3qAttkBV9kMoDs8mKxmmBzeOX2BpDzGJlUFWEA1nPJzIL6O6/pub?gid=1930892450&single=true&output=csv';
+/* ================= URLs GOOGLE SHEETS ================= */
 
-// Ranking
-fetch(URL_RANKING).then(r => r.text()).then(t => {
-  const rows = t.trim().split(/\r?\n/);
-  const h = rows[0].split(',');
-  const tbody = document.querySelector('#rankingTable tbody');
-  rows.slice(1).forEach((r,i) => {
-    const c = r.split(',');
-    if (!c[1]) return;
-    tbody.innerHTML += `<tr><td>${i+1}</td><td>${c[1]}</td><td>${c[2]}</td><td>${c[3]}</td></tr>`;
+const URL_RANKING =
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEhE_31yHY8OwMizzlRlrqB5fQYw-j3qAttkBV9kMoDs8mKxmmBzeOX2BpDzGJlUFWEA1nPJzIL6O6/pub?gid=1718917973&single=true&output=csv';
+
+const URL_FECHAS =
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEhE_31yHY8OwMizzlRlrqB5fQYw-j3qAttkBV9kMoDs8mKxmmBzeOX2BpDzGJlUFWEA1nPJzIL6O6/pub?gid=186519659&single=true&output=csv';
+
+const URL_RESULTADOS =
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEhE_31yHY8OwMizzlRlrqB5fQYw-j3qAttkBV9kMoDs8mKxmmBzeOX2BpDzGJlUFWEA1nPJzIL6O6/pub?gid=2135669188&single=true&output=csv';
+
+const URL_JUGADORES =
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEhE_31yHY8OwMizzlRlrqB5fQYw-j3qAttkBV9kMoDs8mKxmmBzeOX2BpDzGJlUFWEA1nPJzIL6O6/pub?gid=1930892450&single=true&output=csv';
+
+/* ================= RANKING ================= */
+
+fetch(URL_RANKING)
+  .then(r => r.text())
+  .then(text => {
+    const rows = text.trim().split(/\r?\n/);
+    const tbody = document.querySelector('#rankingTable tbody');
+
+    rows.slice(1).forEach((row, i) => {
+      const c = row.split(',');
+      if (!c[1]) return;
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${c[1]}</td>
+          <td>${c[2]}</td>
+          <td>${c[3]}</td>
+        </tr>`;
+    });
   });
-});
 
-// Fechas + resultados
+/* ================= JUGADORES ================= */
+
+let jugadoresMap = {};
+
+fetch(URL_JUGADORES)
+  .then(r => r.text())
+  .then(text => {
+    const rows = text.trim().split(/\r?\n/).slice(1);
+    const ul = document.getElementById('jugadoresList');
+
+    rows.forEach(r => {
+      const c = r.split(',');
+      const id = c[0];
+      const nombre = c[1];
+
+      jugadoresMap[id] = nombre;
+
+      const li = document.createElement('li');
+      li.textContent = nombre;
+      ul.appendChild(li);
+    });
+  });
+
+/* ================= RESULTADOS ================= */
+
 let resultados = [];
-fetch(URL_RESULTADOS).then(r=>r.text()).then(t=>{
-  resultados = t.trim().split(/\r?\n/).slice(1).map(r=>r.split(','));
-});
-fetch(URL_FECHAS).then(r=>r.text()).then(t=>{
-  const rows = t.trim().split(/\r?\n/).slice(1);
-  const sel = document.getElementById('fechaSelect');
-  rows.forEach(r=>{
-    const c=r.split(',');
-    sel.innerHTML+=`<option value="${c[0]}">${c[1]}</option>`;
-  });
-  sel.onchange=()=>cargarResultados(sel.value);
-  if(sel.value)cargarResultados(sel.value);
-});
-function cargarResultados(id){
-  const tb=document.querySelector('#resultadosTable tbody');
-  tb.innerHTML='';
-  resultados.filter(r=>r[0]===id).forEach(r=>{
-    tb.innerHTML+=`<tr><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td></tr>`;
-  });
-}
 
-// Jugadores
-fetch(URL_JUGADORES).then(r=>r.text()).then(t=>{
-  const ul=document.getElementById('jugadoresList');
-  t.trim().split(/\r?\n/).slice(1).forEach(r=>{
-    const c=r.split(',');
-    ul.innerHTML+=`<li>${c[1]}</li>`;
+fetch(URL_RESULTADOS)
+  .then(r => r.text())
+  .then(text => {
+    resultados = text.trim().split(/\r?\n/).slice(1).map(r => r.split(','));
   });
-});
+
+/* ================= FECHAS ================= */
+
+fetch(URL_FECHAS)
+  .then(r => r.text())
+  .then(text => {
+    const rows = text.trim().split(/\r?\n/).slice(1);
+    const select = document.getElementById('fechaSelect');
+
+    rows.forEach(r => {
+      const c = r.split(',');
+      const opt = document.createElement('option');
+      opt.value = c[0];
+      opt.textContent = c[1];
+      select.appendChild(opt);
+    });
+
+    select.onchange = () => cargarResultados(select.value);
+    if (select.options.length > 0) {
+      select.value = select.options[0].value;
+      cargarResultados(select.value);
+    }
+  });
+
+function cargarResultados(idFecha) {
+  const tbody = document.querySelector('#resultadosTable tbody');
+  tbody.innerHTML = '';
+
+  resultados
+    .filter(r => r[0] === idFecha)
+    .forEach(r => {
+      const jugadorId = r[1];
+      const nombre = jugadoresMap[jugadorId] || `ID ${jugadorId}`;
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${nombre}</td>
+          <td>${r[2]}</td>
+          <td>${r[3]}</td>
+          <td>${r[4]}</td>
+        </tr>`;
+    });
+}
 </script>
 
 </body>
