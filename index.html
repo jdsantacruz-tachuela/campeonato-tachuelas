@@ -78,32 +78,40 @@
 <script>
 // 🔧 CONFIGURACIÓN
 // Reemplazar estas URLs por las de Google Sheets publicadas como CSV
-const https://docs.google.com/spreadsheets/d/e/2PACX-1vQEhE_31yHY8OwMizzlRlrqB5fQYw-j3qAttkBV9kMoDs8mKxmmBzeOX2BpDzGJlUFWEA1nPJzIL6O6/pub?gid=1718917973&single=true&output=csv = 'RANKING.csv';
-const https://docs.google.com/spreadsheets/d/e/2PACX-1vQEhE_31yHY8OwMizzlRlrqB5fQYw-j3qAttkBV9kMoDs8mKxmmBzeOX2BpDzGJlUFWEA1nPJzIL6O6/pub?gid=186519659&single=true&output=csv = 'FECHAS.csv';
-const https://docs.google.com/spreadsheets/d/e/2PACX-1vQEhE_31yHY8OwMizzlRlrqB5fQYw-j3qAttkBV9kMoDs8mKxmmBzeOX2BpDzGJlUFWEA1nPJzIL6O6/pub?gid=2135669188&single=true&output=csv  = 'RESULTADOS.csv';
-const https://docs.google.com/spreadsheets/d/e/2PACX-1vQEhE_31yHY8OwMizzlRlrqB5fQYw-j3qAttkBV9kMoDs8mKxmmBzeOX2BpDzGJlUFWEA1nPJzIL6O6/pub?gid=1930892450&single=true&output=csv = 'JUGADORES.csv';
+const URL_RANKING = 'RANKING.csv';
+const URL_FECHAS = 'FECHAS.csv';
+const URL_RESULTADOS = 'RESULTADOS.csv';
+const URL_JUGADORES = 'JUGADORES.csv';
 
-// 🏆 Ranking (robusto CSV / TSV)
+// 🏆 Ranking (CSV robusto Google Sheets)
 fetch(URL_RANKING)
   .then(r => r.text())
   .then(text => {
     const rows = text.trim().split(/\n+/);
-    const headers = rows[0].split(/,|\t/).map(h => h.trim());
+
+    // normalizar headers: quitar espacios, pasar a minusculas, quitar columnas vacias
+    const rawHeaders = rows[0].split(/,|\t|;/);
+    const headers = rawHeaders.map(h => h.trim().toLowerCase()).filter(h => h);
+
     const tbody = document.querySelector('#rankingTable tbody');
+    tbody.innerHTML = '';
 
     rows.slice(1).forEach((row, i) => {
       if (!row) return;
-      const cols = row.split(/,|\t/).map(c => c.trim());
-      const data = Object.fromEntries(headers.map((h, idx) => [h, cols[idx]]));
+      const cols = row.split(/,|\t|;/).map(c => c.trim());
+
+      const data = {};
+      headers.forEach((h, idx) => data[h] = cols[idx]);
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${i + 1}</td>
-        <td>${data['Jugador']}</td>
-        <td>${data['Top 8 Stableford']}</td>
-        <td>${data['Promedio Top 8']}</td>`;
+        <td>${data['jugador'] || ''}</td>
+        <td>${data['top 8 stableford'] || ''}</td>
+        <td>${data['promedio top 8'] || ''}</td>`;
       tbody.appendChild(tr);
     });
+  });
   });
   });
 
@@ -166,3 +174,4 @@ fetch(URL_JUGADORES)
 
 </body>
 </html>
+
