@@ -1,7 +1,6 @@
-<!-- Campeonato Tachuelas -->
 <!DOCTYPE html>
 <html lang="es">
-<head> 
+<head>
   <meta charset="UTF-8" />
   <title>Campeonato Tachuelas 2026</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -79,24 +78,33 @@
 <script>
 // 🔧 CONFIGURACIÓN
 // Reemplazar estas URLs por las de Google Sheets publicadas como CSV
-const https://docs.google.com/spreadsheets/d/e/2PACX-1vQEhE_31yHY8OwMizzlRlrqB5fQYw-j3qAttkBV9kMoDs8mKxmmBzeOX2BpDzGJlUFWEA1nPJzIL6O6/pub?gid=1718917973&single=true&output=csv = 'RANKING.csv';
-const https://docs.google.com/spreadsheets/d/e/2PACX-1vQEhE_31yHY8OwMizzlRlrqB5fQYw-j3qAttkBV9kMoDs8mKxmmBzeOX2BpDzGJlUFWEA1nPJzIL6O6/pub?gid=186519659&single=true&output=csv = 'FECHAS.csv';
-const https://docs.google.com/spreadsheets/d/e/2PACX-1vQEhE_31yHY8OwMizzlRlrqB5fQYw-j3qAttkBV9kMoDs8mKxmmBzeOX2BpDzGJlUFWEA1nPJzIL6O6/pub?gid=2135669188&single=true&output=csv = 'RESULTADOS.csv';
-const https://docs.google.com/spreadsheets/d/e/2PACX-1vQEhE_31yHY8OwMizzlRlrqB5fQYw-j3qAttkBV9kMoDs8mKxmmBzeOX2BpDzGJlUFWEA1nPJzIL6O6/pub?gid=1930892450&single=true&output=csv = 'JUGADORES.csv';
+const URL_RANKING = 'RANKING.csv';
+const URL_FECHAS = 'FECHAS.csv';
+const URL_RESULTADOS = 'RESULTADOS.csv';
+const URL_JUGADORES = 'JUGADORES.csv';
 
-// 🏆 Ranking
+// 🏆 Ranking (robusto CSV / TSV)
 fetch(URL_RANKING)
   .then(r => r.text())
   .then(text => {
-    const rows = text.split('\n').slice(1);
+    const rows = text.trim().split(/\n+/);
+    const headers = rows[0].split(/,|\t/).map(h => h.trim());
     const tbody = document.querySelector('#rankingTable tbody');
-    rows.forEach((row, i) => {
+
+    rows.slice(1).forEach((row, i) => {
       if (!row) return;
-      const cols = row.split(',');
+      const cols = row.split(/,|\t/).map(c => c.trim());
+      const data = Object.fromEntries(headers.map((h, idx) => [h, cols[idx]]));
+
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${i+1}</td><td>${cols[1]}</td><td>${cols[2]}</td><td>${cols[3]}</td>`;
+      tr.innerHTML = `
+        <td>${i + 1}</td>
+        <td>${data['Jugador']}</td>
+        <td>${data['Top 8 Stableford']}</td>
+        <td>${data['Promedio Top 8']}</td>`;
       tbody.appendChild(tr);
     });
+  });
   });
 
 // 📅 Fechas
@@ -158,5 +166,3 @@ fetch(URL_JUGADORES)
 
 </body>
 </html>
-<!-- publicado -->
-<!-- deploy trigger -->
